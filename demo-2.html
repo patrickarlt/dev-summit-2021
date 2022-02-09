@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Demo 2: Basemap Swap</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+
+  <!-- Load Leaflet code library - see updates at http://leafletjs.com/download.html -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+  integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+  <!-- Position the map with Cascading Style Sheet (CSS) -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Insert HTML division tag to layout the map -->
+  <div id="map"></div>
+
+  <!-- Insert Javascript (.js) code to create the map -->
+  <script type="module">
+    import L from "leaflet";
+    import data from "url:./listings.csv";
+    import Papa from "papaparse";
+    import { vectorBasemapLayer } from "esri-leaflet-vector";
+
+    // Set up initial map center and zoom level
+    var map = L.map('map', {
+      center: [41.57, -72.69], // EDIT latitude, longitude to re-center map
+      zoom: 4,  // EDIT from 1 to 18 -- decrease to zoom out, increase to zoom in
+    });
+    const apiKey = "AAPK6589223f682c468bb4681c31fdd1b1f82R8pPFgqL3lqjyCvMGixa8a2GDpYiwR1h2KJrrG7nGTv2O9vrzG4gFV9mZIRm9CC";
+    
+    vectorBasemapLayer("ArcGIS:Community", {
+      apiKey: apiKey
+    }).addTo(map);
+
+    // show the scale bar on the lower left corner
+    L.control.scale({ imperial: true, metric: true }).addTo(map);
+
+    // see more basemap options at https://leaflet-extras.github.io/leaflet-providers/preview/
+
+    fetch(data).then(response => {
+      return response.text();
+    }).then(csvString => {
+      // Use PapaParse to convert string to array of objects
+      var data = Papa.parse(csvString, { header: true, dynamicTyping: true }).data;
+      var latlngs = [];
+      // For each row in data, create a marker and add it to the map
+      // For each row, columns `Latitude`, `Longitude`, and `Title` are required
+      data.forEach((row) => {
+
+
+        if (row.x && row.y) {
+          var latlng = [row.y, row.x];
+          var marker = L.marker(latlng, {
+            opacity: 1
+          }).bindPopup(() => {
+            console.log(row.rate)
+            const cost = row.rate === "Upon Request" ? "Upon Request" : `$${row.rate} / Sq Ft. / Year`;
+            return document.createRange().createContextualFragment(`
+              <div class="popup-content">
+                <h3>${row.address}</h3>
+                <small><i><em>${row.type}</em></i></small> - <small><i>${row.subtype}</i></small>
+                <dl>
+                  <dt>Rate:</dt>
+                  <dd>${cost}</dd>
+                  <dt>Size:</dt>
+                  <dd>${row.size} Sq Ft.</dd>
+              </div>
+              `);
+          }).bindTooltip(() => {
+            return row.address;
+          });
+          latlngs.push(latlng);
+        }
+
+        marker.addTo(map);
+      })
+
+
+      map.fitBounds(L.latLngBounds(latlngs));
+    });
+  </script>
+</body>
+
+</html>

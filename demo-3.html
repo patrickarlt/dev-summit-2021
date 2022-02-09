@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Demo 3: Hosted Feature Layer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+
+  <!-- Load Leaflet code library - see updates at http://leafletjs.com/download.html -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+  integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+  <!-- Position the map with Cascading Style Sheet (CSS) -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Insert HTML division tag to layout the map -->
+  <div id="map"></div>
+
+  <!-- Insert Javascript (.js) code to create the map -->
+  <script type="module">
+    import L from "leaflet";
+    import data from "url:./listings.csv";
+    import Papa from "papaparse";
+    import { vectorBasemapLayer } from "esri-leaflet-vector";
+    import { featureLayer } from "esri-leaflet";
+
+    // Set up initial map center and zoom level
+    var map = L.map('map', {
+      center: [33.804, -117.875], // EDIT latitude, longitude to re-center map
+      zoom: 14,  // EDIT from 1 to 18 -- decrease to zoom out, increase to zoom in
+    });
+
+    const apiKey = "AAPK6589223f682c468bb4681c31fdd1b1f82R8pPFgqL3lqjyCvMGixa8a2GDpYiwR1h2KJrrG7nGTv2O9vrzG4gFV9mZIRm9CC";
+
+    vectorBasemapLayer("ArcGIS:Community", {
+      apiKey
+    }).addTo(map);
+
+    const listings = featureLayer({
+      url: "https://services9.arcgis.com/kAq0la06rYAyTcgX/arcgis/rest/services/listings/FeatureServer/0",
+      token: apiKey
+    }).addTo(map);
+
+    listings.bindPopup((layer)=> {
+      const {rate, address, type, subtype, size} = layer.feature.properties;
+      const cost = rate === "Upon Request" ? "Upon Request" : `$${rate} / Sq Ft. / Year`;
+      return document.createRange().createContextualFragment(`
+      <div class="popup-content">
+        <h3>${address}</h3>
+        <small><i><em>${type}</em></i></small> - <small><i>${subtype}</i></small>
+        <dl>
+          <dt>Rate:</dt>
+          <dd>${cost}</dd>
+          <dt>Size:</dt>
+          <dd>${size} Sq Ft.</dd>
+      </div>
+      `);
+    })
+
+    // show the scale bar on the lower left corner
+    L.control.scale({ imperial: true, metric: true }).addTo(map);
+
+    listings.query().bounds(function (error, latlngbounds) {
+      map.fitBounds(L.latLngBounds(latlngbounds));
+    });
+  </script>
+</body>
+
+</html>
