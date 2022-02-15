@@ -16,6 +16,8 @@
   <!-- Position the map with Cascading Style Sheet (CSS) -->
   <style>
     body {
+      font-family: sans-serif;
+      font-size: 0.825rem;
       margin: 0;
       padding: 0;
     }
@@ -37,6 +39,26 @@
       width: 320px;
       padding: 1rem;
       box-sizing: border-box;
+      border-left: 1px solid lightgray;
+    }
+
+    table {
+      border: 1px solid lightgray;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td {
+      border: 1px solid lightgray;
+      padding: 0.5rem;
+    }
+
+    td + td {
+      font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+      background-color: #F6F6F6;
     }
 
     body.panel-active #map {
@@ -45,6 +67,38 @@
 
     body.panel-active #panel {
       display: block;
+    }
+
+    h3 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    dl {
+      width: 100%;
+      overflow: hidden;
+      padding: 0;
+      margin-top: 1rem;
+    }
+
+    dt {
+      float: left;
+      width: 50%;
+      padding: 0;
+      margin: 0;
+    }
+
+    dd {
+      float: left;
+      width: 50%;
+      padding: 0;
+      margin: 0;
+      font-weight: bold;
+    }
+
+    small {
+      color: #5D5D5D;
+      font-size: 0.75rem;
     }
   </style>
 
@@ -123,79 +177,80 @@
         .then((response) => {
           const { rate, address, type, subtype, size } = layer.feature.properties;
           const enrichmentFeature = Util.arcgisToGeoJSON(response.results[0].value.FeatureSet[0]).features[0];
-          const cost = rate === "Upon Request" ? "Upon Request" : `$${rate} / Sq Ft. / Year`;
+          const cost = rate === "Upon Request" ? "Upon Request" : `$${rate.toLocaleString()} / Sq Ft. / Year`;
           const content = `
             <div id="${layer.feature.id}" class="popup-content">
-              <h3>${address}</h3>
+              <h1>${address}</h1> 
               <small><i><em>${type}</em></i></small> - <small><i>${subtype}</i></small>
               <dl>
                 <dt>Rate:</dt>
                 <dd>${cost}</dd>
                 <dt>Size:</dt>
-                <dd>${size} Sq Ft.</dd>
-                <h3>Retail Spending</h3>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>2021 Retail Goods</td>
-                      <td>${enrichmentFeature.properties.X15001_X}</td>
-                    </tr>
-                    <tr>
-                      <td>2021 Retail Goods Index</td>
-                      <td>${enrichmentFeature.properties.X15001_I}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <dd>${size.toLocaleString()} Sq Ft.</dd>
+              </dl>
+              <h2>Retail Spending</h2>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>2021 Retail Goods</td>
+                    <td>${enrichmentFeature.properties.X15001_X.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>2021 Retail Goods Index</td>
+                    <td>${enrichmentFeature.properties.X15001_I}</td>
+                  </tr>
+                </tbody>
+              </table>
 
-                <h3>Restaurant Spending</h3>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>2021 Meals at Restaurants/Other</td>
-                      <td>${enrichmentFeature.properties.X1131_X}</td>
-                    </tr>
-                    <tr>
-                      <td>2021 Index: Meals at Restaurants/Other</td>
-                      <td>${enrichmentFeature.properties.X1131_I}</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <h2>Restaurant Spending</h2>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>2021 Meals at Restaurants/Other</td>
+                    <td>$${enrichmentFeature.properties.X1131_X.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>2021 Index: Meals at Restaurants/Other</td>
+                    <td>${enrichmentFeature.properties.X1131_I}</td>
+                  </tr>
+                </tbody>
+              </table>
 
-                <h3>Population and Diversity</h3>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>2021 Diversity Index</td>
-                      <td>${enrichmentFeature.properties.DIVINDX_CY}</td>
-                    </tr>
-                    <tr>
-                      <td>2021 Total Population</td>
-                      <td>${enrichmentFeature.properties.TOTPOP_CY}</td>
-                    </tr>
-                    <tr>
-                      <td>2010-2021 Growth Rate: Population</td>
-                      <td>${enrichmentFeature.properties.POPGRW10CY}</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <h2>Population and Diversity</h2>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>2021 Diversity Index</td>
+                    <td>${enrichmentFeature.properties.DIVINDX_CY}</td>
+                  </tr>
+                  <tr>
+                    <td>2021 Total Population</td>
+                    <td>${enrichmentFeature.properties.TOTPOP_CY.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>2010-2021 Growth Rate: Population</td>
+                    <td>${enrichmentFeature.properties.POPGRW10CY}%</td>
+                  </tr>
+                </tbody>
+              </table>
 
-                <h3>Income and Wealth</h3>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>2021 Per Capita Income</td>
-                      <td>${enrichmentFeature.properties.PCI_CY}</td>
-                    </tr>
-                    <tr>
-                      <td>2021 Average Home Value</td>
-                      <td>${enrichmentFeature.properties.AVGVAL_CY}</td>
-                    </tr>
-                    <tr>
-                      <td>2021 Average Household Income</td>
-                      <td>${enrichmentFeature.properties.AVGHINC_CY}</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <h2>Income and Wealth</h2>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>2021 Per Capita Income</td>
+                    <td>$${enrichmentFeature.properties.PCI_CY}</td>
+                  </tr>
+                  <tr>
+                    <td>2021 Average Home Value</td>
+                    <td>$${enrichmentFeature.properties.AVGVAL_CY.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>2021 Average Household Income</td>
+                    <td>$${enrichmentFeature.properties.AVGHINC_CY.toLocaleString()}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
             `
           const dom = document.createRange().createContextualFragment(content);
